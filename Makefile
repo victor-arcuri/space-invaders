@@ -1,7 +1,7 @@
 # Variáveis
-
 CC = gcc
 CFLAGS = -Wall -g -Iinclude
+ALLEGRO_FLAGS = $(shell pkg-config allegro-5 allegro_font-5 allegro_primitives-5 --libs --cflags)
 
 SRCDIR = src
 BUILDDIR = build
@@ -22,7 +22,7 @@ $(BUILDDIR):
 
 # Linkar o executável
 $(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET)
+	$(CC) $(OBJ) -o $(TARGET) $(ALLEGRO_FLAGS)
 
 # Compilar .c para .o na pasta build
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
