@@ -1,11 +1,12 @@
 # Variáveis
 CC = gcc
 CFLAGS = -Wall -g -Iinclude
-ALLEGRO_FLAGS = $(shell pkg-config allegro-5 allegro_font-5 allegro_primitives-5 --libs --cflags)
+ALLEGRO_FLAGS = $(shell pkg-config allegro-5 allegro_font-5 allegro_primitives-5 allegro_image-5 --libs --cflags)
+LIBS = $(ALLEGRO_FLAGS) -lm
 
 SRCDIR = src
 BUILDDIR = build
-TARGET = $(BUILDDIR)/invaders
+TARGET = invaders
 
 # Lista dos arquivos-fonte
 SRC = $(wildcard $(SRCDIR)/*.c)
@@ -22,7 +23,7 @@ $(BUILDDIR):
 
 # Linkar o executável
 $(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(ALLEGRO_FLAGS)
+	$(CC) $(OBJ) -o $(TARGET) $(LIBS)
 
 # Compilar .c para .o na pasta build
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
@@ -31,6 +32,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 # Limpar arquivos gerados
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -f $(TARGET)
 
 #Executa o jogo após buildar
 run: all

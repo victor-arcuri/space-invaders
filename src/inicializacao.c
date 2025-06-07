@@ -1,5 +1,6 @@
-#include <allegro5/allegro5.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include "inicializacao.h"
 
 // Retorna mensagem de erro e encerra o jogo caso o objeto em análise não tenha sido inicializado corretamente.
