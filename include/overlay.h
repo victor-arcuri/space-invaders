@@ -21,7 +21,7 @@ typedef struct DISPLAY DISPLAY;
 
 OVERLAYS* iniciar_overlays();
 
-void desenha_buffer_e_overlay(OVERLAY overlay, struct DISPLAY* display);
+void desenha_buffer_e_overlay(OVERLAY overlay, struct DISPLAY* display, float zoom_atual, float zoom_max);
 
 
 void finalizar_overlays(OVERLAYS* overlays);

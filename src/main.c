@@ -56,7 +56,10 @@ int main(){
     ALLEGRO_EVENT evento;
     bool finalizar = false;
     bool redraw = true;
-
+    
+    float zooming = false;
+    float zoom_atual = 1.6f;
+    float zoom_max = 2.0f;
     // Inicializa o timer do jogo
     al_start_timer(timer);
 
@@ -72,8 +75,13 @@ int main(){
         {
             case ALLEGRO_EVENT_TIMER:
                 if (teclado->teclas[ALLEGRO_KEY_ESCAPE])
+                {
                     finalizar = true;
-                
+                }
+                else if (teclado->teclas[ALLEGRO_KEY_TAB] && !zooming)
+                {
+                    zooming = true;
+                }
                 redraw = true;
                 frames++;
                 break;
@@ -102,7 +110,7 @@ int main(){
             cria_faixas_coloridas();
 
             // Finalização do redraw
-            pos_draw_display(display,overlay_atual);
+            pos_draw_display(display,overlay_atual,zoom_atual,zoom_max);
             redraw = false;
         }
     }

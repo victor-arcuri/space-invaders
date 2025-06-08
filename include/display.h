@@ -15,6 +15,7 @@
 typedef struct DISPLAY   {
     ALLEGRO_DISPLAY* display;
     ALLEGRO_BITMAP* buffer;
+    bool zoom;
 } DISPLAY;
 
 DISPLAY* iniciar_display();
@@ -23,7 +24,7 @@ void finalizar_display(DISPLAY *display);
 
 void pre_draw_display(DISPLAY *display);
 
-void pos_draw_display(DISPLAY *display, OVERLAY overlay);
+void pos_draw_display(DISPLAY *display, OVERLAY overlay, float zoom_atual, float zoom_max);
 
 void cria_faixas_coloridas();
 

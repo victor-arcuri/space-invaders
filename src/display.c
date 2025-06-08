@@ -48,11 +48,11 @@ void pre_draw_display(DISPLAY *display)
 }
 
 // Chamada após fazer alterações visuais para passá-las do buffer para o display visual, mantendo a proporção definida
-void pos_draw_display(DISPLAY *display, OVERLAY overlay)
+void pos_draw_display(DISPLAY *display, OVERLAY overlay, float zoom_atual, float zoom_max)
 {
     al_set_target_backbuffer(display->display);
 
-    desenha_buffer_e_overlay(overlay, display);
+    desenha_buffer_e_overlay(overlay, display,zoom_atual, zoom_max);
 
     al_flip_display();
     
@@ -75,4 +75,3 @@ void cria_faixas_coloridas()
     // Restaura o modo de blending padrão
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 }
-

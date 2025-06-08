@@ -2,6 +2,7 @@
 #include "inicializacao.h"
 #include "display.h"
 #include "overlay.h"
+#include "utilidades.h"
 
 // Inicializa os overlays, alocando espaço na memória HEAP
 OVERLAYS* iniciar_overlays()
@@ -22,38 +23,63 @@ OVERLAYS* iniciar_overlays()
 }
 
 // Desenha o buffer do display redimensionado para o overlay
-void desenha_buffer_e_overlay(OVERLAY overlay, DISPLAY* display)
-{
-    // Descobre as proporções corretas do overlay
+void desenha_buffer_e_overlay(OVERLAY overlay, DISPLAY* display, float zoom_atual, float zoom_max)
+{   
+    // Calcula o zoom e suaviza
+    float zoom_min = 1.0f;
+    float progresso_zoom = (zoom_atual - zoom_min) / (zoom_max - zoom_min); 
+    if (progresso_zoom < 0) progresso_zoom = 0;
+    if (progresso_zoom > 1) progresso_zoom = 1;
+
+    float curva_senoidal = ease_in_out_sine(progresso_zoom);
+    float zoom = zoom_min + (zoom_max - zoom_min) * curva_senoidal;
+
+    // Tamanho da Tela
     int screen_w = al_get_display_width(display->display);
     int screen_h = al_get_display_height(display->display);
 
-    float escala_overlay = fmin((float)screen_w / overlay.img_w, (float)screen_h / overlay.img_h);
+    // Escala do overlay após aumentar a proporção
+    float escala_overlay_base = fmin((float)screen_w / overlay.img_w, (float)screen_h / overlay.img_h);
+    float escala_overlay_zoom = escala_overlay_base * zoom;
 
-    int overlay_w = overlay.img_w * escala_overlay;
-    int overlay_h = overlay.img_h * escala_overlay;
+    // Tamamho do overlay após aplicar escala
+    int overlay_w = overlay.img_w * escala_overlay_zoom;
+    int overlay_h = overlay.img_h * escala_overlay_zoom;
 
-    int overlay_x =(screen_w - overlay_w) / 2;
-    int overlay_y = (screen_h - overlay_h )/ 2;
+    // Posiciona a tela na posição correta em relação ao overlay e realiza a escala correta
+    int tela_x = overlay.tela_x * escala_overlay_zoom;
+    int tela_y = overlay.tela_y * escala_overlay_zoom;
+    int tela_w = overlay.tela_w * escala_overlay_zoom;
+    int tela_h = overlay.tela_h * escala_overlay_zoom;
 
-    int tela_x = overlay_x + overlay.tela_x * escala_overlay;
-    int tela_y = overlay_y + overlay.tela_y * escala_overlay;
-    int tela_w = overlay.tela_w * escala_overlay;
-    int tela_h = overlay.tela_h * escala_overlay;
+    // Pega as coordenadas do centro da tela escalada
+    int tela_cx = tela_x + tela_w / 2;
+    int tela_cy = tela_y + tela_h / 2;
 
-    float escala_jogo = fmin((float)tela_w / BUFFER_W, (float)tela_h / BUFFER_H);
-    int draw_w = BUFFER_W * escala_jogo;
-    int draw_h = BUFFER_H * escala_jogo;
-    int draw_x = tela_x + (tela_w - draw_w) / 2;
-    int draw_y = tela_y + (tela_h - draw_h) / 2;
+    // Offset mínimo (overlay centralizado)
+    int offset_min_x = (screen_w - overlay_w) / 2;
+    int offset_min_y = (screen_h - overlay_h) / 2;
+
+    // Offset máximo (tela do jogo centralizada)
+    int offset_max_x = screen_w / 2 - tela_cx;
+    int offset_max_y = screen_h / 2 - tela_cy;
+
+    int offset_x = offset_min_x + (offset_max_x - offset_min_x) * curva_senoidal;
+    int offset_y = offset_min_y + (offset_max_y - offset_min_y) * curva_senoidal;
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
 
-    // Desenha o buffer do jogo na tela, com a posição correta em relação ao overlay
+    // Desenha buffer do jogo
+    float escala_jogo = fmin((float)tela_w / BUFFER_W, (float)tela_h / BUFFER_H);
+    int draw_w = BUFFER_W * escala_jogo;
+    int draw_h = BUFFER_H * escala_jogo;
+    int draw_x = offset_x + tela_x + (tela_w - draw_w) / 2;
+    int draw_y = offset_y + tela_y + (tela_h - draw_h) / 2;
+
     al_draw_scaled_bitmap(display->buffer, 0, 0, BUFFER_W, BUFFER_H, draw_x, draw_y, draw_w, draw_h, 0);
 
-    // Desenha o overlay escalado na tela
-    al_draw_scaled_bitmap(overlay.bitmap, 0, 0, 1920, 1080, overlay_x, overlay_y, overlay_w, overlay_h, 0);
+    // Desenha overlay
+    al_draw_scaled_bitmap(overlay.bitmap, 0, 0, overlay.img_w, overlay.img_h, offset_x, offset_y, overlay_w, overlay_h, 0);
 
 }
 
