@@ -8,16 +8,14 @@
 #define CANHAO_HEIGHT 8
 
 // Cria um sub bitmap para uma spritesheet, que se refere a um único sprite
-SPRITE* pegar_sprite(ALLEGRO_BITMAP* spritesheet, int x, int y, int w, int h)
+SPRITE pegar_sprite(ALLEGRO_BITMAP* spritesheet, int x, int y, int w, int h)
 {
-    ALLEGRO_BITMAP* sprite_bitmap = al_create_sub_bitmap(spritesheet, x,y,w,h);
-    tenta_iniciar(sprite_bitmap, "pegar bitmap do sprite");
-
-    SPRITE* sprite = (SPRITE *) malloc(sizeof(SPRITE));
-    sprite->bitmap = sprite_bitmap;
-    sprite->width = w;
-    sprite->height = h;
-    tenta_iniciar(sprite_bitmap, "criar sprite");
+    ALLEGRO_BITMAP* bitmap = al_create_sub_bitmap(spritesheet, x,y,w,h);
+    tenta_iniciar(bitmap, "pegar bitmap");
+    SPRITE sprite;
+    sprite.bitmap = bitmap;
+    sprite.height = h;
+    sprite.width = w;
     return sprite;
 }
 
@@ -33,11 +31,7 @@ SPRITES* iniciar_sprites()
     tenta_iniciar(sprites->_og_sheet, "spritesheet original");
 
     // Carrega os sprites
-    sprites->canhao->bitmap =  al_create_sub_bitmap(sprites->_og_sheet, CANHAO_X, CANHAO_Y, CANHAO_WIDTH, CANHAO_HEIGHT);
-    sprites->canhao->width = CANHAO_WIDTH;
-    sprites->canhao->height = CANHAO_HEIGHT;
-
-
+    sprites->canhao =  pegar_sprite(sprites->_og_sheet, CANHAO_X, CANHAO_Y, CANHAO_WIDTH, CANHAO_HEIGHT);
     
     return sprites;
 }
@@ -46,13 +40,12 @@ SPRITES* iniciar_sprites()
 void finalizar_sprites(SPRITES* sprites)
 {
     // Destroi os sprites
-    al_destroy_bitmap(sprites->canhao->bitmap);
+    al_destroy_bitmap(sprites->canhao.bitmap);
 
     // Destroi as spritesheets
     al_destroy_bitmap(sprites->_og_sheet);
 
     // Libera memória alocada na HEAP
-    free(sprites->canhao);
     free(sprites);
 
 }

@@ -16,6 +16,8 @@
 #include "display.h"
 #include "sprites.h"
 #include "teclado.h"
+#include "canhao.h"
+#include "overlay.h"
 
 //Variáveis globais
 long frames;
@@ -29,6 +31,7 @@ int main(){
     tenta_iniciar(al_init(), "allegro");
     tenta_iniciar(al_install_keyboard(), "teclado");
     tenta_iniciar(al_init_image_addon(), "imagens");
+    tenta_iniciar(al_init_primitives_addon(), "primitives");
 
     ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
     tenta_iniciar(timer, "timer");
@@ -40,6 +43,8 @@ int main(){
     DISPLAY* display = iniciar_display();
     SPRITES* sprites = iniciar_sprites();
     TECLADO* teclado = iniciar_teclado();
+    CANHAO* canhao = iniciar_canhao(sprites->canhao);
+    OVERLAYS* overlays = iniciar_overlays();
 
     // Registra fontes de eventos
     al_register_event_source(queue, al_get_keyboard_event_source());
@@ -54,6 +59,9 @@ int main(){
 
     // Inicializa o timer do jogo
     al_start_timer(timer);
+
+    //Define o overlay inicial
+    OVERLAY overlay_atual = overlays->overlay_original;
 
     // Loop principal do jogo
     while (1)
@@ -84,13 +92,17 @@ int main(){
         if (redraw && al_is_event_queue_empty(queue))
         {
             // Preparação do redraw
-            //pre_draw_display(display);
-            //al_clear_to_color(al_map_rgb(0,0,0));
+            pre_draw_display(display);
+            al_clear_to_color(al_map_rgb(0,0,0));
 
-            //Funções do redraw
+            // Funções do redraw
+            draw_canhao(canhao);
+
+            // Aplica as faixas de cores
+            cria_faixas_coloridas();
 
             // Finalização do redraw
-            //pos_draw_display(display);
+            pos_draw_display(display,overlay_atual);
             redraw = false;
         }
     }
@@ -100,6 +112,8 @@ int main(){
     finalizar_display(display);
     finalizar_sprites(sprites);
     finalizar_teclado(teclado);
+    finalizar_canhao(canhao);
+    finalizar_overlays(overlays);
 
     //Finaloza recursos da engine
     al_destroy_timer(timer);

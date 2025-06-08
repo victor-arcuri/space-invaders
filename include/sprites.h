@@ -6,17 +6,19 @@
 
 typedef struct {
     ALLEGRO_BITMAP* bitmap;
+    
     int width, height;
+
 } SPRITE;
 
 typedef struct {
     ALLEGRO_BITMAP* _og_sheet;
     
-    SPRITE* canhao;
+    SPRITE canhao;
 
 } SPRITES;
 
-SPRITE* pegar_sprite(ALLEGRO_BITMAP* spritesheet, int x, int y, int w, int h);
+SPRITE pegar_sprite(ALLEGRO_BITMAP* spritesheet, int x, int y, int w, int h);
 
 SPRITES* iniciar_sprites();
 

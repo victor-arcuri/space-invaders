@@ -10,8 +10,16 @@
 
 typedef struct {
     int x, y;
-    SPRITE* sprite;
+    SPRITE sprite;
 
 } CANHAO;
+
+CANHAO* iniciar_canhao(SPRITE sprite);
+
+void atualizar_canhao(CANHAO* canhao, TECLADO* teclado);
+
+void draw_canhao(CANHAO* canhao);
+
+void finalizar_canhao(CANHAO* canhao);
 
 #endif

@@ -1,6 +1,9 @@
 #include <allegro5/allegro5.h>
+#include <allegro5/allegro_primitives.h>
+
 #include "display.h"
 #include "inicializacao.h"
+#include "overlay.h"
 
 // Cria e retorna um ponteiro para um display com o tamanho da tela
 DISPLAY * iniciar_display()
@@ -45,25 +48,31 @@ void pre_draw_display(DISPLAY *display)
 }
 
 // Chamada após fazer alterações visuais para passá-las do buffer para o display visual, mantendo a proporção definida
-void pos_draw_display(DISPLAY *display)
+void pos_draw_display(DISPLAY *display, OVERLAY overlay)
 {
     al_set_target_backbuffer(display->display);
 
-    int screen_w = al_get_display_width(display->display);
-    int screen_h = al_get_display_height(display->display);
-
-    float escala = fmin((float) screen_w / BUFFER_W, (float)screen_h / BUFFER_H);
-    int draw_w = BUFFER_W * escala;
-    int draw_h = BUFFER_H * escala;
-    int draw_x = (screen_w - draw_w) / 2;
-    int draw_y = (screen_h - draw_h) / 2;
-
-    al_clear_to_color(al_map_rgb(0, 0, 0));
-
-    al_draw_scaled_bitmap(display-> buffer, 0, 0, BUFFER_W, BUFFER_H, draw_x, draw_y, draw_w, draw_h, 0);
+    desenha_buffer_e_overlay(overlay, display);
 
     al_flip_display();
     
 }
 
+// Simula a coloração em faixas do jogo original
+void cria_faixas_coloridas()
+{
+    // Define o modo de blending como aditivo com transparência
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_DEST_COLOR, ALLEGRO_ZERO);
+
+    // Desenha o retângulo inferior verde
+    int green_h = 50;
+    int green_x1 = 0;
+    int green_x2 = BUFFER_W;
+    int green_y1 = BUFFER_H - 17 - green_h;
+    int green_y2 = BUFFER_H - 17;
+    al_draw_filled_rectangle(green_x1, green_y1, green_x2, green_y2, al_map_rgba(0, 255, 0, 255));
+
+    // Restaura o modo de blending padrão
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
+}
 
