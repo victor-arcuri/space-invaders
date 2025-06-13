@@ -19,6 +19,14 @@ DISPLAY * iniciar_display()
 
     // Display a ser retornado
     disp = al_create_display(screen_w, screen_h);
+    
+    //Define nome do jogo
+    al_set_window_title(disp, "Space Invaders");
+
+    //Define o icone do jogo
+    ALLEGRO_BITMAP* icone = al_load_bitmap("assets/img/icon.png");
+    if (icone)
+        al_set_display_icon(disp, icone);
     tenta_iniciar(disp, "display");
 
     ALLEGRO_BITMAP* buffer = al_create_bitmap(BUFFER_W, BUFFER_H);
@@ -65,12 +73,28 @@ void cria_faixas_coloridas()
     al_set_blender(ALLEGRO_ADD, ALLEGRO_DEST_COLOR, ALLEGRO_ZERO);
 
     // Desenha o retângulo inferior verde
-    int green_h = 50;
+    int green_h = 45;
     int green_x1 = 0;
     int green_x2 = BUFFER_W;
-    int green_y1 = BUFFER_H - 17 - green_h;
-    int green_y2 = BUFFER_H - 17;
+    int green_y1 = 190;
+    int green_y2 = green_y1+green_h;
     al_draw_filled_rectangle(green_x1, green_y1, green_x2, green_y2, al_map_rgba(0, 255, 0, 255));
+
+    // Desenha o retângulo inferior verde das vidas
+    int green_vida_h = 10;
+    int green_vida_x1 = 20;
+    int green_vida_x2 = BUFFER_W;
+    int green_vida_y1 = green_y2;
+    int green_vida_y2 = green_vida_y1 + green_vida_h;
+    al_draw_filled_rectangle(green_vida_x1, green_vida_y1, green_vida_x2, green_vida_y2, al_map_rgba(0, 255, 0, 255));
+
+    // Desenha o retângulo superior vermelho
+    int red_h = 32;
+    int red_x1 = 0;
+    int red_x2 = BUFFER_W;
+    int red_y1 = 32;
+    int red_y2 = red_y1 + red_h;
+    al_draw_filled_rectangle(red_x1, red_y1, red_x2, red_y2, al_map_rgba(255, 0, 0, 255));
 
     // Restaura o modo de blending padrão
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);

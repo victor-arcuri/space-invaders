@@ -4,6 +4,8 @@
 #include "overlay.h"
 #include "utilidades.h"
 
+#define VARIANCIA_TELA 10
+
 // Inicializa os overlays, alocando espaço na memória HEAP
 OVERLAYS* iniciar_overlays()
 {
@@ -68,14 +70,15 @@ void desenha_buffer_e_overlay(OVERLAY overlay, DISPLAY* display, float zoom_atua
     int offset_y = offset_min_y + (offset_max_y - offset_min_y) * curva_senoidal;
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
+    //al_clear_to_color(al_map_rgb(255, 255, 255));
 
     // Desenha buffer do jogo
     float escala_jogo = fmin((float)tela_w / BUFFER_W, (float)tela_h / BUFFER_H);
     int draw_w = BUFFER_W * escala_jogo;
     int draw_h = BUFFER_H * escala_jogo;
     int draw_x = offset_x + tela_x + (tela_w - draw_w) / 2;
-    int draw_y = offset_y + tela_y + (tela_h - draw_h) / 2;
-
+    int draw_y = offset_y + tela_y + (tela_h - draw_h) / 2 - VARIANCIA_TELA;
+    
     al_draw_scaled_bitmap(display->buffer, 0, 0, BUFFER_W, BUFFER_H, draw_x, draw_y, draw_w, draw_h, 0);
 
     // Desenha overlay

@@ -6,7 +6,7 @@ LIBS = $(ALLEGRO_FLAGS) -lm
 
 SRCDIR = src
 BUILDDIR = build
-TARGET = invaders
+TARGET = "Space Invaders"
 
 # Lista dos arquivos-fonte
 SRC = $(wildcard $(SRCDIR)/*.c)
