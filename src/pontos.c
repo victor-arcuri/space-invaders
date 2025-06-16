@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include <utilidades.h>
-#include <canhao.h>
+#include "utilidades.h"
+#include "canhao.h"
+#include "sons.h"
 
 PONTOS * iniciar_pontos()
 {
@@ -25,7 +26,7 @@ int criar_highscore()
     return highscore;
 }
 
-void pontuar(PONTOS* pontos, int tipo_alien, CANHAO* canhao){
+void pontuar(PONTOS* pontos, int tipo_alien, CANHAO* canhao, AUDIO* audio){
     int pontuacao;
     if (tipo_alien == TIPO_1) pontuacao = PONTOS_ALIEN_1;
     else if (tipo_alien == TIPO_2) pontuacao = PONTOS_ALIEN_2;
@@ -42,7 +43,7 @@ void pontuar(PONTOS* pontos, int tipo_alien, CANHAO* canhao){
         else pontuacao = 50;   
     }
     pontos->score_atual+=pontuacao;
-    verifica_vida_nova(pontos, canhao);
+    verifica_vida_nova(pontos, canhao, audio);
 }
 
 void verificar_highscore(PONTOS* pontos){
@@ -58,10 +59,11 @@ void atualizar_highscore(PONTOS* pontos){
     fclose(arquivo);
 }
 
-void verifica_vida_nova(PONTOS* pontos, CANHAO* canhao){
+void verifica_vida_nova(PONTOS* pontos, CANHAO* canhao, AUDIO* audio){
     if (pontos->score_atual < pontos->proxima_vida) return;
     pontos->proxima_vida += PONTOS_VIDA_NOVA;
     if (canhao->vidas >= MAX_VIDAS) return;
+    al_play_sample(audio->nova_vida, 0.7f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
     canhao->vidas++; 
 }
 

@@ -9,6 +9,7 @@
 #include "teclado.h"
 #include "utilidades.h"
 #include "nave.h"
+#include "sons.h"
 
 #define LIMITE_TIRO 35
 #define MAX_VIDAS 6
@@ -34,6 +35,13 @@ typedef struct CANHAO {
     TIRO tiro;
     HITBOX hitbox;
     int vidas;
+    bool ativo;
+    bool acertado;
+    SPRITE acertado_sprites[2];
+    int acertado_frame;
+    int acertado_contador_max;
+    int acertado_contador_atual;
+    int acertado_ciclos;
 
 } CANHAO;
 
@@ -42,17 +50,17 @@ typedef struct CANHAO {
 
 
 CANHAO* iniciar_canhao(SPRITES* sprites);
-void atualizar_canhao(CANHAO* canhao, TECLADO* teclado, NAVES* naves,BARREIRA* barreiras);
+void atualizar_canhao(AUDIO* audio, CANHAO* canhao, TECLADO* teclado, NAVES* naves,BARREIRA* barreiras, bool* perdeu_jogo);
 void draw_canhao(CANHAO* canhao);
 void finalizar_canhao(CANHAO* canhao);
-void disparar_tiro_canhao(CANHAO* canhao);
+void disparar_tiro_canhao(CANHAO* canhao, AUDIO* audio);
 void atualizar_tiro_canhao(CANHAO* canhao);
 void tiro_colidiu(CANHAO* canhao);
 void tiro_terminou_colisao(CANHAO* canhao);
 void draw_tiro_canhao(CANHAO* canhao);
 
-void checa_nave_misterio(CANHAO* canhao, NAVES* naves);
+void checa_nave_misterio(CANHAO* canhao, NAVES* naves, AUDIO* audio);
 
-void canhao_acertado(CANHAO* canhao);
+void canhao_acertado(CANHAO* canhao,AUDIO* audio);
 void verifica_colisao_barreira_tiro_canhao(CANHAO* canhao, BARREIRA* barreiras);
 #endif

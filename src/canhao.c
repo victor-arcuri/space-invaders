@@ -40,14 +40,48 @@ CANHAO* iniciar_canhao(SPRITES* sprites)
     tiro.hitbox.y2 = tiro.y + TIRO_CANHAO_EXPLOSAO_HEIGHT;
     canhao->tiro = tiro;
     canhao->tiro.contagem_tiros = 0;
+    canhao->ativo = true;
+    canhao->acertado = false;
+    canhao->acertado_frame = 0;
+    canhao->acertado_sprites[0] = sprites->canhao_acertado[0];
+    canhao->acertado_sprites[1] = sprites->canhao_acertado[1];
+    canhao->acertado_contador_atual = 0;
+    canhao->acertado_contador_max = 5;
+    canhao->acertado_ciclos = 0;
     return canhao;
 
 }
 
 // Atualiza a lógica do canhão
-void atualizar_canhao(CANHAO* canhao, TECLADO* teclado, NAVES* naves, BARREIRA* barreiras)
+void atualizar_canhao(AUDIO* audio, CANHAO* canhao, TECLADO* teclado, NAVES* naves, BARREIRA* barreiras, bool* perdeu_jogo)
 {
-    
+    if (!canhao->ativo) return;
+    if (canhao->acertado){
+        naves->stun = true;
+        if(canhao->acertado_ciclos < 6){
+            if (canhao->acertado_contador_atual < canhao->acertado_contador_max){
+                canhao->acertado_contador_atual++;
+            } else {
+                if (canhao->acertado_frame == 0){
+                    canhao->acertado_frame = 1;
+                } else {
+                    canhao->acertado_frame = 0;
+                    canhao->acertado_ciclos++;
+                }
+                canhao->acertado_contador_atual = 0;
+            }
+        } else {
+            if (canhao->vidas > 0){
+                canhao->acertado = false;
+                naves->stun = false;
+
+            } else {
+                canhao->ativo = false;
+                *perdeu_jogo = true;
+            }
+        }
+        return;
+    } 
     if (teclado->teclas[ALLEGRO_KEY_RIGHT])
     {
         canhao->x+=CANHAO_VEL;
@@ -60,8 +94,8 @@ void atualizar_canhao(CANHAO* canhao, TECLADO* teclado, NAVES* naves, BARREIRA* 
 
     if (teclado->teclas[ALLEGRO_KEY_SPACE] || teclado->teclas[ALLEGRO_KEY_Z])
     {
-        disparar_tiro_canhao(canhao);
-        checa_nave_misterio(canhao, naves);
+        disparar_tiro_canhao(canhao, audio);
+        checa_nave_misterio(canhao, naves, audio);
     }
     verifica_colisao_barreira_tiro_canhao(canhao, barreiras);
     atualizar_tiro_canhao(canhao);
@@ -79,6 +113,11 @@ void atualizar_canhao(CANHAO* canhao, TECLADO* teclado, NAVES* naves, BARREIRA* 
 // Desenha o visual do canhão
 void draw_canhao(CANHAO* canhao)
 {
+    if (!canhao->ativo) return;
+    if (canhao->acertado){
+        al_draw_bitmap(canhao->acertado_sprites[canhao->acertado_frame].bitmap,canhao->x, canhao->y,0);
+        return;
+    }
     draw_tiro_canhao(canhao);
     al_draw_bitmap(canhao->sprite.bitmap, canhao->x, canhao->y, 0);
 }
@@ -89,11 +128,12 @@ void finalizar_canhao(CANHAO* canhao)
     free(canhao);
 }
 
-void disparar_tiro_canhao(CANHAO* canhao)
+void disparar_tiro_canhao(CANHAO* canhao, AUDIO* audio)
 {
     TIRO* tiro = &(canhao->tiro);
     
     if (tiro->ativo || tiro->acertou) return;
+    al_play_sample(audio->canhao_tiro, 0.5f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
     tiro->contagem_tiros++;
     tiro->frame = 0;
     tiro->count = 0;
@@ -106,7 +146,6 @@ void disparar_tiro_canhao(CANHAO* canhao)
     tiro->hitbox.y2 = tiro->y + TIRO_CANHAO_EXPLOSAO_HEIGHT;
     canhao->tiro.tiro_colisao_x = canhao->tiro.x + TIRO_CANHAO_WIDTH / 2;
     canhao->tiro.tiro_colisao_y = canhao->tiro.y;
-    
 
 }
 
@@ -166,18 +205,24 @@ void draw_tiro_canhao(CANHAO* canhao)
 
 }
 
-void checa_nave_misterio(CANHAO* canhao, NAVES* naves){
+void checa_nave_misterio(CANHAO* canhao, NAVES* naves, AUDIO* audio){
     if (naves->nave_misterio.viva) canhao->tiro.contagem_tiros = 0;
     if (canhao->tiro.contagem_tiros % 15 == 0 && canhao->tiro.contagem_tiros != 0){
-        criar_nave_misterio(naves);
+        criar_nave_misterio(naves, audio);
     }
 }
 
-void canhao_acertado(CANHAO* canhao){
+void canhao_acertado(CANHAO* canhao, AUDIO* audio){
     if (canhao->vidas > 0){
         canhao->vidas--;
+        canhao->acertado = true;
+        canhao->acertado_ciclos = 0;
+        canhao->acertado_contador_atual = 0;
+        canhao->acertado_frame = 0;
+        al_play_sample(audio->canhao_explosao, 0.5f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
         return;
     }
+    
 }
 
 

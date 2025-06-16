@@ -9,7 +9,7 @@
 #include "barreira.h"
 #include "pontos.h"
 // Inicia o struct NAVES na memória HEAP e posiciona cada nave em suas posições iniciais
-NAVES* iniciar_naves(SPRITES* sprites)
+NAVES* iniciar_naves(SPRITES* sprites, float velocidade_jogo)
 {
     NAVES* naves = (NAVES*) malloc(sizeof(NAVES));
     tenta_iniciar(naves, "naves");
@@ -72,7 +72,10 @@ NAVES* iniciar_naves(SPRITES* sprites)
             naves->nave_misterio = nave_misterio;
             naves->misterio_explosao_contador_max = 15;
             naves->misterio_explosao_contador = 0;
+            naves->velocidade_jogo = velocidade_jogo;
             naves->tiros = iniciar_tiros_nave();
+            naves->stun = false;
+            naves->audio_movimento_contagem = 0;
             x+=width;
         }
         y+=height+ESPACAMENTO_VERTICAL;
@@ -105,10 +108,10 @@ void draw_naves(NAVES* naves){
 }
 
 // Atualiza a lógica das naves
-void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* barreiras, LINHA* linha, PONTOS* pontos){
-
-    atualizar_nave_misterio(naves, canhao, pontos);
-    atualizar_tiros_nave(naves->tiros, canhao, barreiras, linha);
+void atualizar_naves(AUDIO* audio, NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* barreiras, LINHA* linha, PONTOS* pontos, bool* perdeu_jogo, bool* venceu_jogo){
+    atualizar_nave_misterio(naves, canhao, pontos, audio);
+    atualizar_tiros_nave(naves->tiros, canhao, barreiras, linha, audio);
+    if (naves->stun) return;
 
     if (naves->explosao_contador_atual > 0){
         naves->explosao_contador_atual--;
@@ -142,7 +145,6 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
     int index_possivel = intervalo_aleatorio(0, num_naves_possiveis);
     tenta_disparar_nave(naves->tiros,naves_possiveis[index_possivel],sprites);
 
-
     // Colisão com tiro
     for (int i = 0; i < LINHAS; i++){
         for (int j = 0; j < COLUNAS; j++){
@@ -158,9 +160,20 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
                 naves->explosao_contador_atual = naves->explosao_contador_max;
                 naves->naves[i][j].acertou = true;
                 naves->naves[i][j].frame = 2;
-                pontuar(pontos, nave->tipo, canhao);
+                pontuar(pontos, nave->tipo, canhao, audio);
+                al_play_sample(audio->nave_explosao, 0.5f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
             }
         }
+    }
+    // Checa se todas as naves estão mortas
+    bool vitoria = true;
+    for (int i = 0; i < LINHAS; i++){
+        for (int j = 0; j < COLUNAS; j++){
+            if (naves->naves[i][j].viva) vitoria = false;
+        }
+    }
+    if(vitoria){
+        *venceu_jogo = true;
     }
 
     // Movimento
@@ -171,7 +184,14 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
     naves->contador_movimento = 0;
 
     bool jump = false;
-
+    if (naves->audio_movimento_contagem < 3){
+        naves->audio_movimento_contagem++;
+    }
+    else {
+        naves->audio_movimento_contagem = 0;
+    }
+    al_play_sample(audio->nave_movimento[naves->audio_movimento_contagem], 0.7f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
+    
     for (int i = 0; i < LINHAS; i++){
         for (int j = 0; j < COLUNAS; j++){
             NAVE* nave = &(naves->naves[i][j]);
@@ -183,9 +203,11 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
             // Tocar o Solo
             if (jump && nave->y + naves->vel_y + nave->h > Y_FINAL) {
                 naves->em_movimento = false;
+                naves->stun = true;
+                *perdeu_jogo = true;
                 return;
             }
-            // Tocar a Nave
+            // Tocar o Canhão
             HITBOX hitbox_temp;
             hitbox_temp.x1 = nave->x + 2 + naves->vel_x;
             hitbox_temp.x2 = nave->x + 2 + nave->w - 4 + naves->vel_x;
@@ -193,7 +215,9 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
             hitbox_temp.y2 = nave->y + nave->h;
 
             if (colisao(hitbox_temp, canhao->hitbox)){
+                naves->stun = true;
                 naves->em_movimento = false;
+                *perdeu_jogo = true;
                 return;
             }
             
@@ -214,9 +238,10 @@ void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* b
     }
 
     float fator = (float)naves->total_vivas / (LINHAS * COLUNAS);
-    float intensidade = 0.8f; 
+    float intensidade = 0.8f * naves->velocidade_jogo; 
     float ease = (1 - intensidade) * fator + intensidade * (fator * fator);
     naves->delay_movimento = naves->min_delay + (naves->max_delay - naves->min_delay) * ease;
+
 }
 
 // Libera o espaço ocupado pelas naves
@@ -225,8 +250,9 @@ void finalizar_naves(NAVES* naves)
     free(naves);
 }
 
-void criar_nave_misterio(NAVES* naves){
+void criar_nave_misterio(NAVES* naves, AUDIO* audio){
     if (naves->nave_misterio.viva) return;
+    al_play_sample(audio->nave_misterio, 0.7f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
     int lado = intervalo_aleatorio(0,1);
     int direcao, x, y;
     y = 50;
@@ -247,7 +273,7 @@ void criar_nave_misterio(NAVES* naves){
     naves->nave_misterio.y = y;
 }
 
-void atualizar_nave_misterio(NAVES* naves, CANHAO* canhao, PONTOS* pontos){
+void atualizar_nave_misterio(NAVES* naves, CANHAO* canhao, PONTOS* pontos, AUDIO* audio){
     if (naves->misterio_explosao_contador > 0){
         naves->misterio_explosao_contador--;
         return;
@@ -284,8 +310,9 @@ void atualizar_nave_misterio(NAVES* naves, CANHAO* canhao, PONTOS* pontos){
     naves->nave_misterio.acertou = true;
     naves->nave_misterio.frame = 1;
     naves->misterio_explosao_contador = naves->misterio_explosao_contador_max;
-    pontuar(pontos, MISTERIO, canhao);
+    pontuar(pontos, MISTERIO, canhao, audio);
     tiro_colidiu(canhao);
+    al_play_sample(audio->nave_explosao, 0.5f, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
     
 }
 
@@ -379,7 +406,7 @@ void tenta_disparar_nave(TIROS_NAVE* tiros, NAVE nave, SPRITES* sprites){
     }
 }
 
-void atualizar_tiros_nave(TIROS_NAVE* tiros, CANHAO* canhao, BARREIRA* barreiras, LINHA* linha){
+void atualizar_tiros_nave(TIROS_NAVE* tiros, CANHAO* canhao, BARREIRA* barreiras, LINHA* linha, AUDIO* audio){
     verifica_colisao_barreira(tiros, barreiras);
     for(int i =0; i<tiros->tiros_max; i++){
         if (tiros->tiros[i].contador_explosao_atual > 0){
@@ -417,7 +444,8 @@ void atualizar_tiros_nave(TIROS_NAVE* tiros, CANHAO* canhao, BARREIRA* barreiras
             tiros->tiros[i].acertado = true;
             tiros->tiros[i].contador_explosao_atual = tiros->tiros[i].contador_explosao_max;
             tiros->tiros[i].frame = 4 * 10;
-            canhao_acertado(canhao);
+            
+            canhao_acertado(canhao, audio);
         }
 
         // Verifica colisão com tiro do canhão
@@ -474,4 +502,16 @@ void verifica_colisao_barreira(TIROS_NAVE* tiros, BARREIRA* barreiras){
 
         }
     }
+}
+
+void naves_animacao_spawn(NAVES* naves, DISPLAY* display, OVERLAY overlay_atual, float zoom_atual, float zoom_max){
+    for (int i = LINHAS -1; i >= 0; i--){
+        for (int j = 0; j < COLUNAS; j++){
+            al_set_target_bitmap(display->buffer);
+            al_draw_bitmap(naves->naves[i][j].sprites[0].bitmap, naves->naves[i][j].x, naves->naves[i][j].y, 0);
+            pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
+            al_rest(0.02f);
+        }
+    }
+    
 }

@@ -9,6 +9,7 @@
 #include "utilidades.h"
 #include "barreira.h"
 #include "pontos.h"
+#include "sons.h"
 
 #define LINHAS 5
 #define COLUNAS 11
@@ -79,23 +80,26 @@ typedef struct {
     int contador_movimento_misterio;
     int dir_nave_misterio;
     int misterio_explosao_contador, misterio_explosao_contador_max;
+    float velocidade_jogo;
+    bool stun;
     TIROS_NAVE* tiros;
+    int audio_movimento_contagem;
 
 } NAVES;
 
-NAVES* iniciar_naves(SPRITES* sprites);
+NAVES* iniciar_naves(SPRITES* sprites, float velocidade_jogo);
 
 void draw_nave(NAVE nave);
 
 void draw_naves(NAVES* naves);
 
-void atualizar_naves(NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* barreiras, LINHA* linha, PONTOS* pontos);
+void atualizar_naves(AUDIO* audio, NAVES* naves, CANHAO* canhao, SPRITES* sprites, BARREIRA* barreiras, LINHA* linha, PONTOS* pontos, bool* perdeu_jogo, bool* venceu_jogo);
 
 void finalizar_naves(NAVES* naves);
 
-void criar_nave_misterio(NAVES* naves);
+void criar_nave_misterio(NAVES* naves, AUDIO* audio);
 
-void atualizar_nave_misterio(NAVES* naves, CANHAO* canhao, PONTOS* pontos);
+void atualizar_nave_misterio(NAVES* naves, CANHAO* canhao, PONTOS* pontos, AUDIO* audio);
 
 
 TIROS_NAVE* iniciar_tiros_nave();
@@ -104,11 +108,12 @@ void finalizar_tiros_nave(TIROS_NAVE* tiros);
 
 void tenta_disparar_nave(TIROS_NAVE* tiros, NAVE nave, SPRITES* sprites);
 
-void atualizar_tiros_nave(TIROS_NAVE* tiros, CANHAO* canhao, BARREIRA* barreira, LINHA* linha);
+void atualizar_tiros_nave(TIROS_NAVE* tiros, CANHAO* canhao, BARREIRA* barreira, LINHA* linha,AUDIO* audio);
 
 void draw_tiros_nave(TIROS_NAVE* tiros);
 
 void verifica_colisao_barreira(TIROS_NAVE* tiros, BARREIRA* barreiras);
 
+void naves_animacao_spawn(NAVES* naves, DISPLAY* display, OVERLAY overlay_atual, float zoom_atual, float zoom_max);
 
 #endif

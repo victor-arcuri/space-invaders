@@ -193,7 +193,9 @@ SPRITES* iniciar_sprites()
     //Tecla Espaço
     sprites->teclas[42] = pegar_sprite(sprites->_og_sheet, 21, 119, 8,8);
 
-    
+    sprites->canhao_acertado[0] = pegar_sprite(sprites->_og_sheet, 19, 49, 16, 8);
+    sprites->canhao_acertado[1] = pegar_sprite(sprites->_og_sheet, 37, 49, 16, 8);
+
 
     return sprites;
 }

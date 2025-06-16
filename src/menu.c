@@ -1,11 +1,14 @@
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_audio.h>
 #include "menu.h"
 #include "display.h"
 #include "overlay.h"
 #include "texto.h"
+#include "sons.h"
 
-void ligar_arcade_animacao(DISPLAY* disp, OVERLAY overlay, int zoom_atual, int zoom_max) {
+void ligar_arcade_animacao(AUDIO* audio, DISPLAY* disp, OVERLAY overlay, float zoom_atual, float zoom_max) {
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60.0);
     ALLEGRO_EVENT_QUEUE* fila = al_create_event_queue();
     al_register_event_source(fila, al_get_timer_event_source(timer));
@@ -15,7 +18,7 @@ void ligar_arcade_animacao(DISPLAY* disp, OVERLAY overlay, int zoom_atual, int z
     const int altura = al_get_bitmap_height(disp->buffer);
 
     const int LARGURA_BLOOM = 5;
-    const int DURACAO_PRETA = 180;
+    const int DURACAO_PRETA = 30;
     const int DURACAO_ANIMACAO = 15;
     const int DURACAO_FADEOUT = 60;
 
@@ -26,7 +29,7 @@ void ligar_arcade_animacao(DISPLAY* disp, OVERLAY overlay, int zoom_atual, int z
         pos_draw_display(disp, overlay, zoom_atual, zoom_max);
         al_wait_for_event(fila, NULL);
     }
-
+    al_play_sample(audio->arcade_ligando, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
     // Linha branca de CTR crescendo
     for (int frame = 0; frame < DURACAO_ANIMACAO; frame++) {
         float t = (float)frame / DURACAO_ANIMACAO;
@@ -69,19 +72,22 @@ void ligar_arcade_animacao(DISPLAY* disp, OVERLAY overlay, int zoom_atual, int z
         pos_draw_display(disp, overlay, zoom_atual, zoom_max);
         al_wait_for_event(fila, NULL);
     }
+    al_attach_audio_stream_to_mixer(audio->estatica_arcade, al_get_default_mixer());
+
 
     al_destroy_timer(timer);
     al_destroy_event_queue(fila);
 }
 
-void typewrite_menu_principal(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atual, int zoom_atual, int zoom_max){
+void typewrite_menu_principal(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atual, float zoom_atual, float zoom_max, bool *completo){
     char logo[20] = "SPACE INVADERS";
     int x = (BUFFER_W - (FONT_WIDTH * strlen(logo))) / 2;
     int y = 60;
     int contador = 0;
-    int delay_max = 15;
+    int delay_max = 10;
     int delay_atual = 0;
     while (true){
+        if (*completo) break;
         pre_draw_display(display);
         if (typewrite(logo, fonte, x,y,0,&contador,&delay_atual, &delay_max)){
             pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
@@ -97,6 +103,7 @@ void typewrite_menu_principal(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atu
     delay_atual = 0;
 
     while (true){
+        if (*completo) break;
         pre_draw_display(display);
         desenhar_texto(logo, fonte,x,y,0);
         if (typewrite(jogar_text, fonte,jogar_text_x,jogar_text_y,0,&contador,&delay_atual, &delay_max)){
@@ -113,6 +120,7 @@ void typewrite_menu_principal(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atu
     delay_atual = 0;
 
     while (true){
+        if (*completo) break;
         pre_draw_display(display);
         desenhar_texto(logo, fonte,x,y,0);
         desenhar_texto(jogar_text, fonte,jogar_text_x,jogar_text_y,0);
@@ -122,5 +130,45 @@ void typewrite_menu_principal(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atu
         }
         pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
     }
+    *completo = true; 
 
+
+}
+
+void typewrite_game_over(FONTE* fonte, DISPLAY* display,OVERLAY overlay_atual, float zoom_atual, float zoom_max){
+    char logo[20] = "GAME OVER";
+    int x = (BUFFER_W - (FONT_WIDTH * strlen(logo))) / 2;
+    int y = 50;
+    int contador = 0;
+    int delay_max = 10;
+    int delay_atual = 0;
+    while (true){
+        al_set_target_bitmap(display->buffer);
+        if (typewrite(logo, fonte, x,y,0,&contador,&delay_atual, &delay_max)){
+            cria_faixas_coloridas();
+            pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
+            break;
+        }
+        cria_faixas_coloridas();
+        pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
+        
+    }
+
+    char voltar_menu_texto[] = "<ENTER>MENU";
+    int x_menu = (BUFFER_W - (FONT_WIDTH * strlen(voltar_menu_texto))) / 2;
+    int y_menu = 80;
+    contador = 0;
+    delay_max = 10;
+    delay_atual = 0;
+    while (true){
+        al_set_target_bitmap(display->buffer);
+        if (typewrite(voltar_menu_texto, fonte, x_menu,y_menu,0,&contador,&delay_atual, &delay_max)){
+            cria_faixas_coloridas();
+            pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
+            break;
+        }
+        cria_faixas_coloridas();
+        pos_draw_display(display, overlay_atual, zoom_atual, zoom_max);
+        
+    }
 }

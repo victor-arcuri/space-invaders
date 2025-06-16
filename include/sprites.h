@@ -54,6 +54,8 @@ typedef struct {
 
     SPRITE teclas[43];
 
+    SPRITE canhao_acertado[2];
+
 
 } SPRITES;
 
