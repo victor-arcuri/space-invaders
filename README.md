@@ -43,11 +43,58 @@ Os comandos do jogo são simples:
 
 ## 💻 Pré-requisitos
 
+- Compilador `gcc` instalado (para Windows, com `MinGW`)
+- Comando `make` funcional (para Windows, vem com `MinGW` mas precisa ser renomeado)
+- Biblioteca `Allegro5` instalada para C
+- Comando `git` funcional
 
 ## 🚀 Instalação
 
+Para realizar a instalação do projeto, siga as seguintes etapas para seu sistema operacional:
+
+> [!WARNING]
+> Caso a instalação falhe, talvez seja necessário alterar as variáveis do Makefile para que sejam compatíveis com seu ambiente
+
+<details>
+<summary> <b>Linux</b></summary>
+Primeiro, clone o repositório
+
+```bash
+git clone https://github.com/victor-arcuri/space-invaders
+cd space-invaders
+```
+
+Em seguida, rode o makefile para compilar o jogo:
+```bash
+make
+```
+
+Se a instalação foi bem-sucedida, um arquivo executável chamado `Space Invaders` foi criado no diretório! 
+</details>
+
+<details>
+<summary> <b>Windows</b></summary>
+Primeiro, clone o repositório
+
+```cmd
+git clone https://github.com/victor-arcuri/space-invaders
+cd space-invaders
+```
+
+Em seguida, rode o makefile para compilar o jogo:
+```bash
+make  # Talvez o comando tenha outro nome dependendo do que foi renomeado no MinGW
+```
+
+Se a instalação foi bem-sucedida, um arquivo executável chamado `invaders.exe` foi criado no diretório! 
+
+</details>
 
 ## ☕ Execução
-
+Para executar o jogo, inicie o arquivo gerado na instalação com base no seu sistema operacional:
+```
+Space Invaders   # Linux
+invaders.exe     # Windows
+```
 
 ## 📃 Implementação
