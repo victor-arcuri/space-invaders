@@ -12,6 +12,7 @@ HUD* iniciar_hud(CANHAO* canhao, PONTOS* pontos, FONTE* fonte, SPRITES* sprites)
     hud->vidas = &canhao->vidas;
     hud->fonte = fonte;
     hud->sprite_canhao = &sprites->canhao;
+    return hud;
 }
 
 void finalizar_hud(HUD* hud){
