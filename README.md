@@ -81,3 +81,4 @@ Space Invaders
 ```
 
 ## 📃 Implementação
+Aspectos relacionados à implementação de mecânicas do jogo, além de seu funcionamento, podem ser encontrados na [Wiki](https://github.com/victor-arcuri/space-invaders/wiki/Documenta%C3%A7%C3%A3o-de-Implementa%C3%A7%C3%A3o).
